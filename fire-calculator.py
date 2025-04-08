@@ -11,6 +11,26 @@ st.set_page_config(page_title="FIRE Calculator", layout="wide")
 st.title("FIRE Calculator")
 st.markdown("Calculate your path to Financial Independence and Early Retirement")
 
+# Currency settings
+currencies = {
+    "NPR": {"symbol": "रू", "name": "Nepalese Rupee"},
+    "USD": {"symbol": "$", "name": "US Dollar"},
+    "THB": {"symbol": "฿", "name": "Thai Baht"},
+    "INR": {"symbol": "₹", "name": "Indian Rupee"}
+}
+
+# Currency selection at the top of sidebar
+st.sidebar.header("Currency Settings")
+selected_currency = st.sidebar.selectbox(
+    "Select Currency",
+    options=list(currencies.keys()),
+    format_func=lambda x: f"{x} - {currencies[x]['name']}",
+    index=3  # Default to INR
+)
+
+# Get currency symbol
+currency_symbol = currencies[selected_currency]["symbol"]
+
 # Sidebar for inputs
 st.sidebar.header("Your Details")
 
@@ -21,38 +41,38 @@ years_until_retirement = retirement_age - current_age
 
 # Current financial status
 st.sidebar.header("Current Financial Status")
-current_savings = st.sidebar.number_input("Current Savings (Rs)", min_value=0, value=1000000)
-monthly_income = st.sidebar.number_input("Monthly Income (Rs)", min_value=0, value=100000)
+current_savings = st.sidebar.number_input(f"Current Savings ({selected_currency})", min_value=0, value=1000000)
+monthly_income = st.sidebar.number_input(f"Monthly Income ({selected_currency})", min_value=0, value=100000)
 savings_rate = st.sidebar.slider("Savings Rate (%)", min_value=5, max_value=80, value=40)
 annual_investment_return = st.sidebar.slider("Expected Investment Return (%)", min_value=1, max_value=15, value=7)
 
 # Expense details
 st.sidebar.header("Expense Details")
-monthly_expense = st.sidebar.number_input("Current Monthly Expenses (Rs)", min_value=0, value=50000)
+monthly_expense = st.sidebar.number_input(f"Current Monthly Expenses ({selected_currency})", min_value=0, value=50000)
 expense_inflation = st.sidebar.slider("Expense Inflation Rate (%)", min_value=1, max_value=10, value=4)
 
 # Trips
 trips_per_year = st.sidebar.number_input("Trips Per Year", min_value=0, max_value=10, value=1)
-trip_budget = st.sidebar.number_input("Trip Budget (Rs)", min_value=0, value=250000)
+trip_budget = st.sidebar.number_input(f"Trip Budget ({selected_currency})", min_value=0, value=250000)
 trip_inflation = st.sidebar.slider("Trip Cost Inflation Rate (%)", min_value=1, max_value=10, value=6)
 
 # Car Upgrade
 car_upgrade_years = st.sidebar.number_input("Car Upgrade Frequency (years)", min_value=1, max_value=20, value=7)
-car_cost = st.sidebar.number_input("Car Upgrade Cost (Rs)", min_value=0, value=1500000)
+car_cost = st.sidebar.number_input(f"Car Upgrade Cost ({selected_currency})", min_value=0, value=1500000)
 car_inflation = st.sidebar.slider("Car Cost Inflation Rate (%)", min_value=1, max_value=10, value=5)
 
 # Phone/Gadget Upgrade
 gadget_upgrade_years = st.sidebar.number_input("Gadget Upgrade Frequency (years)", min_value=1, max_value=10, value=7)
-gadget_cost = st.sidebar.number_input("Gadget Upgrade Cost (Rs)", min_value=0, value=500000)
+gadget_cost = st.sidebar.number_input(f"Gadget Upgrade Cost ({selected_currency})", min_value=0, value=500000)
 gadget_inflation = st.sidebar.slider("Gadget Cost Inflation Rate (%)", min_value=1, max_value=10, value=3)
 
 # Dependents
 num_dependents = st.sidebar.number_input("Number of Dependents", min_value=0, max_value=10, value=1)
-dependent_cost = st.sidebar.number_input("Annual Cost per Dependent (Rs)", min_value=0, value=600000)
+dependent_cost = st.sidebar.number_input(f"Annual Cost per Dependent ({selected_currency})", min_value=0, value=600000)
 dependent_inflation = st.sidebar.slider("Dependent Cost Inflation Rate (%)", min_value=1, max_value=10, value=6)
 
 # Misc Costs
-misc_monthly = st.sidebar.number_input("Miscellaneous Monthly Costs (Rs)", min_value=0, value=10000)
+misc_monthly = st.sidebar.number_input(f"Miscellaneous Monthly Costs ({selected_currency})", min_value=0, value=10000)
 misc_inflation = st.sidebar.slider("Misc Cost Inflation Rate (%)", min_value=1, max_value=10, value=6)
 
 # Safe Withdrawal Rate
@@ -102,26 +122,30 @@ fire_number = calculate_fire_number(retirement_annual_expenses, swr)
 # Display calculations
 st.header("Current Expenses Breakdown")
 
+# Format currency function
+def format_currency(amount):
+    return f"{currency_symbol}{amount:,.2f}"
+
 # Create expenses table
 expense_data = {
     "Category": ["Monthly Expenses", "Annual Trips", "Car Upgrade", "Gadget Upgrade", "Dependents", "Misc Costs", "Total"],
-    "Current Amount (Rs)": [
-        f"{monthly_expense:,.2f} (monthly)", 
-        f"{trip_budget:,.2f} × {trips_per_year} trip(s)", 
-        f"{car_cost:,.2f} (every {car_upgrade_years} years)", 
-        f"{gadget_cost:,.2f} (every {gadget_upgrade_years} years)",
-        f"{dependent_cost:,.2f} × {num_dependents} dependent(s)",
-        f"{misc_monthly:,.2f} (monthly)",
+    f"Current Amount ({selected_currency})": [
+        f"{format_currency(monthly_expense)} (monthly)", 
+        f"{format_currency(trip_budget)} × {trips_per_year} trip(s)", 
+        f"{format_currency(car_cost)} (every {car_upgrade_years} years)", 
+        f"{format_currency(gadget_cost)} (every {gadget_upgrade_years} years)",
+        f"{format_currency(dependent_cost)} × {num_dependents} dependent(s)",
+        f"{format_currency(misc_monthly)} (monthly)",
         ""
     ],
-    "Annualized (Rs)": [
-        f"{annual_expense:,.2f}",
-        f"{annual_trips:,.2f}",
-        f"{car_annual:,.2f}",
-        f"{gadget_annual:,.2f}",
-        f"{dependent_annual:,.2f}",
-        f"{misc_annual:,.2f}",
-        f"{total_annual_cost:,.2f}"
+    f"Annualized ({selected_currency})": [
+        format_currency(annual_expense),
+        format_currency(annual_trips),
+        format_currency(car_annual),
+        format_currency(gadget_annual),
+        format_currency(dependent_annual),
+        format_currency(misc_annual),
+        format_currency(total_annual_cost)
     ],
     "Inflation Rate (%)": [
         f"{expense_inflation:.2f}%",
@@ -143,14 +167,14 @@ st.header("FIRE Calculation Results")
 col1, col2 = st.columns(2)
 
 with col1:
-    st.metric("Current Annual Expenses", f"₹{total_annual_cost:,.2f}")
-    st.metric("Projected Annual Expenses at Retirement", f"₹{retirement_annual_expenses:,.2f}")
+    st.metric("Current Annual Expenses", format_currency(total_annual_cost))
+    st.metric("Projected Annual Expenses at Retirement", format_currency(retirement_annual_expenses))
     st.metric("Years Until Retirement", f"{years_until_retirement} years")
 
 with col2:
     st.metric("Weighted Average Inflation", f"{weighted_inflation:.2f}%")
     st.metric("Safe Withdrawal Rate", f"{swr:.1f}%")
-    st.metric("FIRE Number", f"₹{fire_number:,.2f}", help="The amount you need to save to retire")
+    st.metric("FIRE Number", format_currency(fire_number), help="The amount you need to save to retire")
 
 # Projection calculation
 def calculate_fire_projection():
@@ -242,7 +266,7 @@ if projection['fire_year'] is not None:
 fig.update_layout(
     title='Savings vs. FIRE Number Projection',
     xaxis_title='Age',
-    yaxis_title='Amount (Rs)',
+    yaxis_title=f'Amount ({selected_currency})',
     legend=dict(x=0.01, y=0.99),
     hovermode='x unified',
     height=600
@@ -250,7 +274,7 @@ fig.update_layout(
 
 # Format y-axis to display large numbers better
 fig.update_yaxes(
-    tickprefix='₹',
+    tickprefix=currency_symbol,
     tickformat='.2s'
 )
 
@@ -261,9 +285,9 @@ if st.checkbox("Show Detailed Projection Data"):
     projection_data = {
         "Age": projection['age'],
         "Year": [f"Year {y}" for y in projection['year']],
-        "Projected Savings (Rs)": [f"₹{s:,.2f}" for s in projection['savings']],
-        "Annual Expenses (Rs)": [f"₹{e:,.2f}" for e in projection['annual_expenses']],
-        "FIRE Number (Rs)": [f"₹{fn:,.2f}" for fn in projection['fire_numbers']],
+        f"Projected Savings ({selected_currency})": [format_currency(s) for s in projection['savings']],
+        f"Annual Expenses ({selected_currency})": [format_currency(e) for e in projection['annual_expenses']],
+        f"FIRE Number ({selected_currency})": [format_currency(fn) for fn in projection['fire_numbers']],
         "FIRE Achieved": projection['fire_achieved']
     }
     
@@ -306,7 +330,7 @@ annual_saving = monthly_income * 12 * (savings_rate / 100)
 years_to_save = 0 if annual_saving <= 0 else (fire_number - current_savings) / (annual_saving * (1 + annual_investment_return/100))
 
 with col1:
-    st.metric("Annual Savings", f"₹{annual_saving:,.2f}")
+    st.metric("Annual Savings", format_currency(annual_saving))
     
 with col2:
     if annual_saving > 0:
@@ -322,8 +346,9 @@ with col3:
 
 # Notes and disclaimers
 st.header("Notes & Disclaimers")
-st.info("""
+st.info(f"""
 - This calculator provides estimates based on the inputs you provide and assumes constant growth rates.
+- All calculations are shown in {selected_currency} ({currencies[selected_currency]['name']}).
 - Actual results may vary due to market fluctuations, changes in income, expenses, and other life events.
 - It's recommended to revisit your FIRE plan periodically and adjust as needed.
 - The Safe Withdrawal Rate is based on historical data and may not guarantee future results.
